@@ -8,7 +8,7 @@ input_file = sys.argv[1]
 output_file = sys.argv[2]
 
 if len(sys.argv)>3:
-    pop_id_column = sys.arg[3]
+    pop_id_column = sys.argv[3]
 else:
     pop_id_column = 'Metadata_Line'
 
