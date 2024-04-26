@@ -49,6 +49,31 @@ def standardize_by_kolf(df,population_feature='Metadata_Line',control_value='KOL
 
     return df_out#.reset_index()
 
+def standardize_by_population(df,population_feature='Metadata_Line',control_value='KOLF',group_columns=['Metadata_Plate','Metadata_Well','Metadata_Tile','Metadata_Line'], index_columns = ['Metadata_Tile','ObjectNumber'],target_features=None):
+    '''Standardizes the numerical columns of df by evaluating the robust z-score. The null model for each
+    measurement is estimated as its empirical distribution for the null_gene. If group_column is specified, the 
+    null model is evaluated separately for each category in group_column. (E.g., standardizing by well.)'''
+
+    #Warning, this will fail is dataframe contains repeated values for cells
+    
+    df_out = df.copy()
+
+    if not isinstance(control_value,list):
+        control_value = [control_value]
+
+    if target_features is None:
+        target_features = [col for col in df.columns if col not in group_columns+index_columns]
+    
+    group_medians = (df.query(population_feature+' in @control_value')
+                     .groupby(group_columns)[target_features].median()
+                     .median())
+                     #.groupby(population_feature).median()) #Since these are not in well controls, I am taking the median over all fields of view to get one value per feature from KOLF.
+    group_mads = evaluate_mad(df.query(population_feature+' in @control_value')[target_features],group_medians)
+
+    df_out[target_features] = df[target_features].subtract(group_medians.values).divide(group_mads).multiply(0.6745)
+
+    return df_out#.reset_index()
+
 def average_per_tile(df,target_columns):
     return df.groupby(['Metadata_Line','Metadata_Plate','Metadata_Well','Metadata_Tile'])[target_columns].median().reset_index()
 
