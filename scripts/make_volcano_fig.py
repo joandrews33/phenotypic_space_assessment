@@ -14,6 +14,7 @@ parser.add_argument('--alpha',type=np.float64, help='Target FDR for highlighting
 parser.add_argument('--clipping',type=np.float64, help='Sets a minimum p-value. Prevents zero p-vals')
 parser.add_argument('--angle',type=np.float64, help='Angle to display point annotations.')
 parser.add_argument('--num_annotate', help='Number of top hits to annotate.', type=int)
+parser.add_argument('--symlog',action='store_true',help='Scale the x-axis to symmetric-log scale.')
 
 args = parser.parse_args()
 
@@ -62,6 +63,15 @@ if args.num_annotate is not None:
 plt.xlabel('Feature median z-score')
 plt.ylabel('-log(FDR)')
 plt.title('Feature volcano for '+args.target_line)
+if args.symlog:
+    # Rescaling the x-axis to symmetric log
+    def get_ticks(x_vals,n_ticks): #Pyplot symlog has TERRIBLE default behavior for putting ticks on the x axis, so I am doing it myself.
+        largest_value = 1.05*max(max(x_vals),max(-x_vals)) #Adding 5 percent extra
+        return np.linspace(-largest_value,largest_value,n_ticks)
+    plt.xscale('symlog')
+    #plt.xticks(minor=True)
+    plt.xticks(ticks=get_ticks(df_volcano['effect_size'],9))
+    plt.xticks(ticks=get_ticks(df_volcano['effect_size'],33),minor=True)
 plt.savefig(args.output_file)
 
 
