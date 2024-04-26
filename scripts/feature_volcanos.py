@@ -48,7 +48,8 @@ def get_pvals(df_pop,df_null,target_features):
 df = []
 for population, background in zip(df_std[POPULATION].unique(),set_background(df_std[POPULATION].unique(),use_revertants=args.use_revertants)):
     print(population)
-    target_plate = df_std.query(POPULATION+'==@population').Metadata_Plate.unique()[0]
+    target_plate = df_std.query(POPULATION+'==@population').Metadata_Plate.unique()#[0]
+    print(target_plate)
     #p_vec = get_pvals(df_std.query(POPULATION+'==@population'),df_std.query(POPULATION+'=="KOLF"').query('Metadata_Plate in @target_plate'),target_features=ph_cols)
     p_vec = get_pvals(df_std.query(POPULATION+'==@population'),df_std.query(POPULATION+'==@background').query('Metadata_Plate in @target_plate'),target_features=ph_cols)
     _,fdr=fdrcorrection(p_vec)
