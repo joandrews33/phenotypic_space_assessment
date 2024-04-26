@@ -23,9 +23,9 @@ if args.angle is None:
 
 ### Load and reshape volcano dataframe.
 if 'average' in args.target_line: #Passing the target line as average will average the effect sizes and p-values over the different lines. Median averaging of p-values may not be a reasonable mathematical operation.
-    df = pd.read_csv(args.input_file).drop(columns='line').median(axis=0)
+    df = pd.read_csv(args.input_file).drop(columns='line').drop(columns='background').median(axis=0)
 else:
-    df = pd.read_csv(args.input_file).query('line==@args.target_line').drop(columns='line')
+    df = pd.read_csv(args.input_file).query('line==@args.target_line').drop(columns='line').drop(columns='background')
 
 feature_names = df.transpose().iloc[0::2].index
 effect_sizes = df.transpose().iloc[0::2].values
