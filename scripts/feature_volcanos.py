@@ -13,14 +13,27 @@ from statsmodels.stats.multitest import fdrcorrection
 parser = argparse.ArgumentParser()
 parser.add_argument('input_file')
 parser.add_argument('output_file')
-parser.add_argument('--use_revertants',action='store_true',help='use revertants as the null model for p-values.')
+parser.add_argument('--population_feature',help='feature used to group data into populations. default=Metadata_Line')
+parser.add_argument('--target_population',help='default population used for null model. default=KOLF')
+parser.add_argument('--use_revertants',action='store_true',help='use revertants as the null model for p-values instead of default.')
 args = parser.parse_args()
 
 #input_file = sys.argv[1]
 #output_file = sys.argv[2]
 #use_revertants=True
 
-POPULATION = 'Metadata_Line'
+if args.population_feature is None:
+    POPULATION = 'Metadata_Line'
+else:
+    POPULATION = args.population_feature
+
+if args.target_population is None:
+    default_background = 'KOLF'
+else:
+    if args.use_revertants:
+        import warnings
+        warnings.warn('Using revertants only makes sense if you are standardizing by the cell line.')
+    default_background = args.target_population
 
 df_std = pd.read_csv(args.input_file)
 ph_cols = get_ph_cols(df_std)
@@ -46,7 +59,7 @@ def get_pvals(df_pop,df_null,target_features):
     return p_vec
 
 df = []
-for population, background in zip(df_std[POPULATION].unique(),set_background(df_std[POPULATION].unique(),use_revertants=args.use_revertants)):
+for population, background in zip(df_std[POPULATION].unique(),set_background(df_std[POPULATION].unique(),use_revertants=args.use_revertants,default_background=default_background)):
     print(population)
     target_plate = df_std.query(POPULATION+'==@population').Metadata_Plate.unique()#[0]
     print(target_plate)
